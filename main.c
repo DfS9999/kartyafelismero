@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <limits.h>
+#include <math.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_WINDOWS_UTF8
 #include "stb_image.h" 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBIW_WINDOWS_UTF8
-#include "stb_image_write.h" // Each function returns 0 on failure and non-0 on success.
-//#define STB_IMAGE_RESIZE_IMPLEMENTATION
-//#include "stb_image_resize2.h"
+#include "stb_image_write.h"
 
 #define GRAYSCALER_R    0.3f
 #define GRAYSCALER_G    0.59f
@@ -28,35 +28,50 @@ typedef struct {
 int loadImage(const char *inputPath, img *outImg);      // input kép betöltése
 int saveImage(img *image, const char *name);            // írás bmp formátumba
 int convertToGrayscale(img *coloredImg, img *outImg);   // szürkeárnyalatosítás
+void writeToText(img *image, const char *filename);     // kép kiírás | XXX XXX XXX | alakban
+img* templateMatchingOnGrayscale(img *subject, img *template);
 
 
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
-        printf("Adj eleresi utat a kephez: %s <image.jpg>\n", argv[0]);
+    if (argc < 3) {
+        //printf("Adj eleresi utat a kephez: %s <image.jpg>\n", argv[0]);
+        printf("Adj eleresi utat a kephez: %s <image.jpg> <template.jpg> \n", argv[0]);
         return 1;
     }
-
     img original;
     if (loadImage(argv[1], &original)) {
         return 1;
     }
-
-    img grayscale;
-    if (convertToGrayscale(&original, &grayscale)) {
+    img grayscaleOriginal;
+    if (convertToGrayscale(&original, &grayscaleOriginal)) {
         stbi_image_free(original.values);
         return 1;
     }
 
-    saveImage(&grayscale, "gray");
+    img template;
+    if (loadImage(argv[2], &template)) {
+        return 1;
+    }
+    img grayscaleTemplate;
+    if (convertToGrayscale(&template, &grayscaleTemplate)) {
+        stbi_image_free(template.values);
+        return 1;
+    }
 
+    img *resultImagePtr = templateMatchingOnGrayscale(&grayscaleOriginal, &grayscaleTemplate);
+    if (!resultImagePtr) {
+        printf("Template matching sikertelen\n");
+    } else {
+        saveImage(resultImagePtr, "templateMatchingResult");
+    }
+    
+    //writeToText(&original, "original");
+    //writeToText(&grayscale, "grayscale");
 
-
-
-    // free
-    stbi_image_free(original.values);
-    free(grayscale.values);
+    free(resultImagePtr->values);
+    free(resultImagePtr);
 
     return 0;
 }
@@ -75,6 +90,7 @@ int loadImage(const char *inputPath, img *outImg)
         return 1;
     }
 
+    printf("Height: %d Width: %d Channels: %d. ", outImg->height, outImg->width, outImg->channels);
     printf("%s beolvasva.\n", inputPath);
     return 0;
 }
@@ -108,15 +124,18 @@ int convertToGrayscale(img *coloredImg, img *outImg)
         }
     }
 
+    printf("Height: %d Width: %d Channels: %d. ", outImg->height, outImg->width, outImg->channels);
     printf("Szurkearnyalatos beolvasva.\n");
     return 0;
 }
 
 int saveImage(img *image, const char *name)
 {
-    int len = strlen(name) + 4 + 1;
-    char filename[len];
+    // bmp format
     char extension[] = ".bmp";
+
+    int fullLength = strlen(name) + strlen(extension) + 1;
+    char filename[fullLength];
     strcpy(filename, name);
     strcat(filename, extension);
 
@@ -130,3 +149,147 @@ int saveImage(img *image, const char *name)
     return 0;
 }
 
+void writeToText(img *image, const char *filename)
+{
+    FILE *fp = fopen(filename, "w");
+    if (!fp) {
+        printf("Szoveges fajl letrehozasa sikertelen.\n");
+        return;
+    }
+
+    int rows = image->height;
+    int width = image->width;
+    int channels = image->channels;
+
+    // buffer a kiíráshoz: "255 " 4 karakter / színcsatorna, + extra karaktereknek
+    size_t buffSize = rows * width * channels * 4 * 2;
+    char *buff = (char*) malloc(buffSize);
+    if (!buff) {
+        fclose(fp);
+        printf("Sikertelen memoriafoglalas.\n");
+        return;
+    }
+    char *buffPtr = buff;
+
+    for (int row = 0; row < rows; row++) {
+        *buffPtr++ = '|';
+        *buffPtr++ = ' ';
+        int startOfRow = row * width * channels;
+
+        for (int pixel = 0; pixel < width; pixel++) {
+
+            int startOfPixel = startOfRow + pixel * channels;
+
+            for (int offset = 0; offset < channels; offset++){
+                sprintf(buffPtr, "%03d ", image->values[startOfPixel + offset]);
+                buffPtr += 4;
+            }
+
+            *buffPtr++ = '|';
+            *buffPtr++ = ' ';
+        }
+
+        *buffPtr++ = '\n';
+    }
+    *buffPtr = '\0';
+    fputs(buff, fp);
+
+    free(buff);
+    fclose(fp);
+    printf("%s mentve.\n", filename);
+}
+
+img* templateMatchingOnGrayscale(img *subject, img *template)
+{
+    int subjectH = subject->height;
+    int subjectW = subject->width;
+    int templateH = template->height;
+    int templateW = template->width;
+    intensity *subjectVals = subject->values;
+    intensity *templateVals = template->values;
+    
+    /////
+    if (subject->channels != 1 || template->channels != 1) { 
+        printf("Nem szurkearnyalatos kep input\n");
+        return NULL;
+    }
+    if (templateH > subjectH || templateW > subjectW) {
+        printf("Template nagyobb meretu mint input kep\n");
+        return NULL;
+    } 
+    
+    // különbség értékek tombje, kezdetben INT_MAX
+    int pixelCount = subjectH * subjectW;
+    int *results = (int*) malloc(pixelCount * sizeof(int));
+    if (!results) {
+        printf("Sikertelen memoriafoglalas.\n");
+        return NULL;
+    }
+    for (int i = 0; i < pixelCount; results[i++] = INT_MAX);
+
+    // különbségek és minimum-maximum értékek meghatározása
+    int minDiff = INT_MAX;
+    int maxDiff = -1;
+    for (int i = 0; i <= subjectH - templateH; i++) {
+        for (int j = 0; j <= subjectW - templateW; j++) {
+            int diff = 0;
+
+            for (int k = 0; k < templateH; k++) {
+                for (int l = 0; l < templateW; l++) {
+                    int sIdx = (i + k) * subjectW + j + l;
+                    int tIdx = k * templateW + l;
+
+                    diff += abs(subjectVals[sIdx] - templateVals[tIdx]);
+                }
+            }
+
+            if (diff < minDiff) minDiff = diff;
+            if (diff > maxDiff) maxDiff = diff;
+
+            int rIdx = i * subjectW + j;
+            results[rIdx] = diff;
+        }
+    }
+
+    // eredmény képe
+    img *visualization = (img*) malloc(sizeof(img));
+    if (!visualization) {
+        printf("Sikertelen memoriafoglalas.\n");
+        free(results);
+        return NULL;
+    }
+
+    visualization->height = subjectH;
+    visualization->width = subjectW;
+    visualization->channels = 1;
+    visualization->values = (intensity*) malloc(subjectH * subjectW * sizeof(intensity));
+    if (!visualization->values) {
+        printf("Sikertelen memoriafoglalas.\n");
+        free(results);
+        free(visualization);
+        return NULL;
+    }
+
+    // Eredmény tömb értékeinek normalizálása 0 - 255 közé
+    int diffRange = maxDiff - minDiff;
+    if (diffRange == 0) {
+        free(results);
+        free(visualization->values);
+        free(visualization);
+        return NULL;
+    }
+
+    for (int i = 0; i < pixelCount; i++) {
+        if (results[i] == INT_MAX) {
+            visualization->values[i] = (intensity)maxDiff;
+            continue;
+        }
+        float reduced = (float) (results[i] - minDiff) * 255.0;
+        visualization->values[i] = (intensity)(reduced / diffRange);
+    }
+    printf("Max kulonbseg: %d, Min kulonbseg: %d\n", maxDiff, minDiff);
+
+    free(results);
+
+    return visualization;
+}
