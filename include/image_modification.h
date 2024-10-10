@@ -3,7 +3,8 @@
 
 #include "image_common.h"
 
-img* convertToGrayscale(img *coloredImg);
+img* grayscaling(img *inputImg);        // szürkeárnyalatosítás
+img* gaussianBlurring(img *inputImg);   // Gauss-elmosás (szürkeárnyalatos input)
 
 
 #endif // IMAGE_MODIFICATION_H
