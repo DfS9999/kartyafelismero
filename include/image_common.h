@@ -2,6 +2,7 @@
 #define IMAGE_COMMON_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint8_t intensity;
 typedef struct {
