@@ -103,6 +103,7 @@ if __name__ == '__main__':
   # command line arguments
   parser.add_argument('input_dir', type=str, help='Input images directory')
   parser.add_argument('output_dir', type=str, help='Output images directory')
+  parser.add_argument('number_of_augmentations', type=int, help='Number of different augmentations per images')
   args = parser.parse_args()
   
   # validating provided folders
@@ -123,4 +124,4 @@ if __name__ == '__main__':
     exit()
   
   for f in classes_folders:
-    augment_images(f, output_dir_path, n=15)
+    augment_images(f, output_dir_path, args.number_of_augmentations)
