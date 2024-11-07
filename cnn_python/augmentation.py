@@ -56,18 +56,21 @@ def gaussian_blur_random(image: MatLike, max_blur: float) -> MatLike:
                           ksize=(3, 3), 
                           sigmaX=blur)
 
-def augment_images(input_dir_path, output_dir_path, n=15):
+def augment_images(input_dir_path: Path, output_dir_path: Path, n=15) -> int:
   # variables for the augmentation
   height, width            = 512, 384
-  max_rotation_degree      = 35
+  max_rotation_degree      = 40
   max_crop_deviation       = 0.15
-  max_brightness_deviation = 0.2
-  max_contrast_deviation   = 0.2
+  max_brightness_deviation = 0.3
+  max_contrast_deviation   = 0.3
   max_blur                 = 3.0
+  
+  class_dir = output_dir_path / input_dir_path.name
+  class_dir.mkdir(parents=True, exist_ok=True)
   
   idx = 0
   for input_image_path in input_dir_path.glob("*.jpg"):
-    # load images as grayscale (2D numpy arrays)
+    # load images as grayscale
     original_image = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
     if original_image is None or original_image.shape[0] < height or original_image.shape[1] < width:
       print(f"Skipping: {input_image_path}")
@@ -87,16 +90,15 @@ def augment_images(input_dir_path, output_dir_path, n=15):
       augmented = contrast_random(augmented, max_contrast_deviation)
       augmented = gaussian_blur_random(augmented, max_blur)
       
-      # saving image
-      output_filename = output_dir_path / f"{input_image_path.parent.name}_{idx}.jpg"
+      # saving image, keeping folder structure
+      output_filename = class_dir / f"{input_image_path.parent.name}_{idx}.jpg"
       idx += 1
       cv2.imwrite(filename=str(output_filename), img=augmented)
 
   print(f"Count of augmented images saved: {idx}")
-  return
+  return idx
 
-    
-if __name__ == '__main__':
+def main():
   parser = argparse.ArgumentParser(prog='Image Augmentation',
                                    description='Augment images for the dataset: ...')
   
@@ -110,18 +112,23 @@ if __name__ == '__main__':
   input_dir_path = Path(args.input_dir)
   if not input_dir_path.is_dir():
     print("Provide valid input images directory!")
-    exit()
+    exit(1)
   
   output_dir_path = Path(args.output_dir)
-  if not output_dir_path.is_dir():
-    print("Provide valid output images directory!")
-    exit()
+  output_dir_path.mkdir(parents=True, exist_ok=True)
   
   # augmentation per folders
   classes_folders = [d for d in input_dir_path.iterdir() if d.is_dir()]
   if not classes_folders:
-    print("No directories in provided input path!")
-    exit()
+    print("No class-directories in input path!")
+    exit(1)
   
+  total = 0
   for f in classes_folders:
-    augment_images(f, output_dir_path, args.number_of_augmentations)
+    total += augment_images(f, output_dir_path, args.number_of_augmentations)
+  
+  print(f"Total images created: {total}")
+
+
+if __name__ == '__main__':
+  main()
