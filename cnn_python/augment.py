@@ -30,7 +30,7 @@ def get_augmentation_transforms():
         transforms.Resize(size=(256, 256)),
         transforms.RandomRotation(degrees=25, interpolation=transforms.InterpolationMode.BICUBIC),
         transforms.CenterCrop((FINAL_IMG_SIZE, FINAL_IMG_SIZE)),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.1),
         transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
         transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.3),
     ])

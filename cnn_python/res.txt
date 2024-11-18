@@ -1,0 +1,32 @@
+MODEL A (batch=64, learning_rate=0.001)
+        Epoch 1/10 - Train loss: 0.6843, Validation loss: 2.5589
+        Epoch 2/10 - Train loss: 0.0288, Validation loss: 2.5322
+        Epoch 3/10 - Train loss: 0.0110, Validation loss: 2.5218
+        Epoch 4/10 - Train loss: 0.0124, Validation loss: 2.5259
+        Epoch 5/10 - Train loss: 0.0038, Validation loss: 2.5185
+        Epoch 6/10 - Train loss: 0.0006, Validation loss: 2.5183
+        Epoch 7/10 - Train loss: 0.0216, Validation loss: 2.5205
+        Epoch 8/10 - Train loss: 0.0103, Validation loss: 2.5188
+        Epoch 9/10 - Train loss: 0.0003, Validation loss: 2.5182
+        Epoch 10/10 - Train loss: 0.0001, Validation loss: 2.5181*
+        
+        Total training time: 1498.79 sec (~25 min)
+        Test Loss: 2.5181, Test Accuracy: 100.00%
+        Total test time: 16.32 seconds
+
+MODEL B (batch=64, learning_rate=0.001) 
+        Epoch 1/10 - Train loss: 0.7603, Validation loss: 2.5279
+        Epoch 2/10 - Train loss: 0.0300, Validation loss: 2.5205
+        Epoch 3/10 - Train loss: 0.0231, Validation loss: 2.5207
+        Epoch 4/10 - Train loss: 0.0199, Validation loss: 2.5189
+        Epoch 5/10 - Train loss: 0.0211, Validation loss: 2.5187
+        Epoch 6/10 - Train loss: 0.0168, Validation loss: 2.5183
+        Epoch 7/10 - Train loss: 0.0221, Validation loss: 2.5192
+        Epoch 8/10 - Train loss: 0.0115, Validation loss: 2.5180*
+        Epoch 9/10 - Train loss: 0.0128, Validation loss: 2.5192
+        Epoch 10/10 - Train loss: 0.0121, Validation loss: 2.5184
+        
+        Total training time: 9262.18 sec (~2.5 h)
+        Test Loss: 2.5185, Test Accuracy: 99.96%
+        Total test time: 25.94 seconds
+
