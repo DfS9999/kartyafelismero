@@ -1,3 +1,7 @@
+----------------------------------------------------------------------
+MAGYAR KARTYA KEPEK
+----------------------------------------------------------------------
+
 MODEL A (batch=64, learning_rate=0.001)
         Epoch 1/10 - Train loss: 0.6843, Validation loss: 2.5589
         Epoch 2/10 - Train loss: 0.0288, Validation loss: 2.5322
@@ -30,3 +34,121 @@ MODEL B (batch=64, learning_rate=0.001)
         Test Loss: 2.5185, Test Accuracy: 99.96%
         Total test time: 25.94 seconds
 
+----------------------------------------------------------------------
+KAGGLE DATASET
+----------------------------------------------------------------------
+
+MODEL A (batch=64, learning_rate=0.001)
+        Epoch 1/20 - Train loss: 3.0478, Validation loss: 3.6919
+        Epoch 2/20 - Train loss: 2.1253, Validation loss: 3.5937
+        Epoch 3/20 - Train loss: 1.7623, Validation loss: 3.4882
+        Epoch 4/20 - Train loss: 1.4713, Validation loss: 3.4005
+        Epoch 5/20 - Train loss: 1.2149, Validation loss: 3.3642
+        Epoch 6/20 - Train loss: 0.9852, Validation loss: 3.3174
+        Epoch 7/20 - Train loss: 0.7735, Validation loss: 3.3005
+        Epoch 8/20 - Train loss: 0.6023, Validation loss: 3.2717
+        Epoch 9/20 - Train loss: 0.4727, Validation loss: 3.2350
+        Epoch 10/20 - Train loss: 0.3593, Validation loss: 3.2374
+        Epoch 11/20 - Train loss: 0.3146, Validation loss: 3.2271*
+        Epoch 12/20 - Train loss: 0.2190, Validation loss: 3.2302
+        Epoch 13/20 - Train loss: 0.1876, Validation loss: 3.2279
+        
+        Total training time: 1119.45 sec
+        Test Loss: 3.2717, Test Accuracy: 75.47%
+        Total test time: 2.19 seconds
+
+MODEL B (batch=64, learning_rate=0.001)
+        Epoch 1/20 - Train loss: 3.2390, Validation loss: 3.7776
+        Epoch 2/20 - Train loss: 2.3023, Validation loss: 3.6868
+        Epoch 3/20 - Train loss: 1.9759, Validation loss: 3.5406
+        Epoch 4/20 - Train loss: 1.6633, Validation loss: 3.4008
+        Epoch 5/20 - Train loss: 1.3656, Validation loss: 3.3267
+        Epoch 6/20 - Train loss: 1.1365, Validation loss: 3.2919
+        Epoch 7/20 - Train loss: 0.9870, Validation loss: 3.2329
+        Epoch 8/20 - Train loss: 0.8845, Validation loss: 3.1985
+        Epoch 9/20 - Train loss: 0.7572, Validation loss: 3.1755
+        Epoch 10/20 - Train loss: 0.6997, Validation loss: 3.1569
+        Epoch 11/20 - Train loss: 0.6459, Validation loss: 3.1622
+        Epoch 12/20 - Train loss: 0.5732, Validation loss: 3.1418
+        Epoch 13/20 - Train loss: 0.5237, Validation loss: 3.1416
+        Epoch 14/20 - Train loss: 0.4552, Validation loss: 3.1274
+        Epoch 15/20 - Train loss: 0.4162, Validation loss: 3.1307
+        Epoch 16/20 - Train loss: 0.3743, Validation loss: 3.1264
+        Epoch 17/20 - Train loss: 0.3272, Validation loss: 3.1180*
+        Epoch 18/20 - Train loss: 0.2861, Validation loss: 3.1213
+        Epoch 19/20 - Train loss: 0.3036, Validation loss: 3.1239
+
+        Total training time: 4843.87 sec
+        Test Loss: 3.1426, Test Accuracy: 86.42%
+        Total test time: 2.84 seconds
+
+----------------------------------------------------------------------
+KAGGLE Without random transforms on train DATASET
+----------------------------------------------------------------------
+
+MODEL A (batch=64, learning_rate=0.001)
+        Epoch 1/20 - Train loss: 2.9239, Validation loss: 3.6778
+        Epoch 2/20 - Train loss: 1.9347, Validation loss: 3.5774
+        Epoch 3/20 - Train loss: 1.5962, Validation loss: 3.4903
+        Epoch 4/20 - Train loss: 1.2991, Validation loss: 3.4088
+        Epoch 5/20 - Train loss: 1.0515, Validation loss: 3.3614
+        Epoch 6/20 - Train loss: 0.8325, Validation loss: 3.3347
+        Epoch 7/20 - Train loss: 0.6437, Validation loss: 3.3034
+        Epoch 8/20 - Train loss: 0.4607, Validation loss: 3.2860
+        Epoch 9/20 - Train loss: 0.3319, Validation loss: 3.2901
+        Epoch 10/20 - Train loss: 0.2619, Validation loss: 3.2547
+        Epoch 11/20 - Train loss: 0.1853, Validation loss: 3.2331*
+        Epoch 12/20 - Train loss: 0.1344, Validation loss: 3.2365
+        Epoch 13/20 - Train loss: 0.1197, Validation loss: 3.2388
+        
+        Total training time: 424.38 sec
+        Test Loss: 3.2565, Test Accuracy: 76.23%
+        Total test time: 0.72 seconds
+
+MODEL B (batch=64, learning_rate=0.001)
+        Epoch 1/20 - Train loss: 3.4320, Validation loss: 3.8584
+        Epoch 2/20 - Train loss: 2.3265, Validation loss: 3.6595
+        Epoch 3/20 - Train loss: 1.8829, Validation loss: 3.4968
+        Epoch 4/20 - Train loss: 1.5680, Validation loss: 3.4132
+        Epoch 5/20 - Train loss: 1.3169, Validation loss: 3.3160
+        Epoch 6/20 - Train loss: 1.1246, Validation loss: 3.2535
+        Epoch 7/20 - Train loss: 0.9715, Validation loss: 3.2202
+        Epoch 8/20 - Train loss: 0.8632, Validation loss: 3.2088
+        Epoch 9/20 - Train loss: 0.7414, Validation loss: 3.1911
+        Epoch 10/20 - Train loss: 0.6651, Validation loss: 3.1818
+        Epoch 11/20 - Train loss: 0.5975, Validation loss: 3.1657
+        Epoch 12/20 - Train loss: 0.5366, Validation loss: 3.1508
+        Epoch 13/20 - Train loss: 0.4765, Validation loss: 3.1542
+        Epoch 14/20 - Train loss: 0.4324, Validation loss: 3.1348
+        Epoch 15/20 - Train loss: 0.3865, Validation loss: 3.1209
+        Epoch 16/20 - Train loss: 0.3274, Validation loss: 3.1321
+        Epoch 17/20 - Train loss: 0.2881, Validation loss: 3.1348
+
+        Total training time: 3655.66 sec
+        Test Loss: 3.1561, Test Accuracy: 87.92%
+        Total test time: 3.00 seconds
+
+----------------------------------------------------------------------
+KAGGLE Without random transforms on train dataset, no normalization
+----------------------------------------------------------------------
+
+MODEL A (batch=64, learning_rate=0.001)
+        Epoch 1/20 - Train loss: 3.3215, Validation loss: 3.7929
+        Epoch 2/20 - Train loss: 2.2315, Validation loss: 3.6566
+        Epoch 3/20 - Train loss: 1.9116, Validation loss: 3.5885
+        Epoch 4/20 - Train loss: 1.6890, Validation loss: 3.5279
+        Epoch 5/20 - Train loss: 1.4976, Validation loss: 3.4792
+        Epoch 6/20 - Train loss: 1.3374, Validation loss: 3.4431
+        Epoch 7/20 - Train loss: 1.1792, Validation loss: 3.4048
+        Epoch 8/20 - Train loss: 1.0264, Validation loss: 3.3939
+        Epoch 9/20 - Train loss: 0.8949, Validation loss: 3.3504
+        Epoch 10/20 - Train loss: 0.7613, Validation loss: 3.3442
+        Epoch 13/20 - Train loss: 0.4165, Validation loss: 3.3188
+        Epoch 14/20 - Train loss: 0.3725, Validation loss: 3.2926
+        Epoch 15/20 - Train loss: 0.2774, Validation loss: 3.2829
+        Epoch 16/20 - Train loss: 0.2350, Validation loss: 3.2861
+        Epoch 17/20 - Train loss: 0.1570, Validation loss: 3.2970
+
+        Total training time: 531.43 sec
+        Test Loss: 3.3118, Test Accuracy: 71.70%
+        Total test time: 0.60 seconds

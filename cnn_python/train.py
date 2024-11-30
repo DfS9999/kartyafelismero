@@ -11,25 +11,34 @@ import timm
 
 # args
 def parse_args():
-    parser = argparse.ArgumentParser(prog='Model trraining')
+    parser = argparse.ArgumentParser(prog='Model training')
     parser.add_argument('train_dir', type=str)
     parser.add_argument('validation_dir', type=str )
     parser.add_argument('test_dir', type=str)
+    parser.add_argument("model", type=str, choices=['A', 'B', 'C'])
     return parser.parse_args()
 
 ################################################################
 # TRANSFORM
 ################################################################
-transform = transforms.Compose([
+transform_base = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
+
+transform_kaggle_cards = transforms.Compose([
+    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.1),
+    transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
+    transforms.RandomAdjustSharpness(sharpness_factor=2, p=0.3),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
 ])
 
 ################################################################
 # DATASET
 ################################################################
 class CardDataset(Dataset):
-  def __init__(self, images_dir):
+  def __init__(self, images_dir, transform=None):
     self.data = ImageFolder(root=images_dir, transform=transform)
 
   def __len__(self):
@@ -37,32 +46,12 @@ class CardDataset(Dataset):
   
   def __getitem__(self, idx):
     return self.data[idx]
-  
-  @staticmethod
-  def idx_to_class() -> dict[int, str]:
-    # ImageFolder loads in alphabetic order
-    classes = {
-        0: "Makk 10",      1: "Makk 7",     2: "Makk 8",       3: "Makk 9",
-        4: "Makk Also",    5: "Makk Asz",   6: "Makk Felso",   7: "Makk Kiraly",
-        8: "Sziv 10",      9: "Sziv 7",     10: "Sziv 8",      11: "Sziv 9",
-        12: "Sziv Also",   13: "Sziv Asz",  14: "Sziv Felso",  15: "Sziv Kiraly",
-        16: "Tok 10",      17: "Tok 7",     18: "Tok 8",       19: "Tok 9",
-        20: "Tok Also",    21: "Tok Asz",   22: "Tok Felso",   23: "Tok Kiraly",
-        24: "Zold 10",     25: "Zold 7",    26: "Zold 8",      27: "Zold 9",
-        28: "Zold Also",   29: "Zold Asz",  30: "Zold Felso",  31: "Zold Kiraly"
-    }
-    return classes
-  
-  @staticmethod
-  def class_to_idx() -> dict[str, int]:
-    idxes = { v: k for k,v in CardDataset.idx_to_class().items() }
-    return idxes
 
 ################################################################
 # MODEL A
 ################################################################ 
 class CardClassifierModel_A(nn.Module):
-    def __init__(self, class_count=32):
+    def __init__(self, class_count):
         super(CardClassifierModel_A, self).__init__()
         # -> [3, 224, 224]
         # 1. block 4x4x3x8
@@ -77,7 +66,7 @@ class CardClassifierModel_A(nn.Module):
 
         self.fc1 = nn.Linear(in_features=16 * 8 * 8, out_features=512)                  # -> 512
         self.relu3 = nn.ReLU()
-        self.fc2 = nn.Linear(in_features=512, out_features=class_count)                 # -> 32
+        self.fc2 = nn.Linear(in_features=512, out_features=class_count)                 # -> class_count
 
     def forward(self, x):
         x = self.pool1(self.relu1(self.conv1(x)))
@@ -94,7 +83,7 @@ class CardClassifierModel_A(nn.Module):
 # MODEL B
 ################################################################ 
 class CardClassifierModel_B(nn.Module):
-    def __init__(self, class_count=32):
+    def __init__(self, class_count):
         super(CardClassifierModel_B, self).__init__()
         # -> [3, 224, 224]
         # 1. block
@@ -120,7 +109,7 @@ class CardClassifierModel_B(nn.Module):
         self.fc1   = nn.Linear(in_features=128 * 7 * 7, out_features=512) # 6272 -> 512
         self.relu4 = nn.ReLU()
         self.drop1 = nn.Dropout(p=0.3)
-        self.fc2   = nn.Linear(in_features=512, out_features=class_count) # 512 -> 32
+        self.fc2   = nn.Linear(in_features=512, out_features=class_count) # 512 -> class_count
 
     def forward(self, x):
         x = self.pool1(self.relu1(self.bn1(self.conv1(x)))) 
@@ -138,7 +127,7 @@ class CardClassifierModel_B(nn.Module):
 # MODEL C
 ################################################################ 
 class CardClassifierModel_Efficientnet_b0(nn.Module):
-    def __init__(self, class_count=32):
+    def __init__(self, class_count):
         super(CardClassifierModel_Efficientnet_b0, self).__init__()
         # using pre-trained model 'efficientnet_b0' [3,224,224]
         self.base_model = timm.create_model(model_name='efficientnet_b0', pretrained=True)
@@ -146,7 +135,7 @@ class CardClassifierModel_Efficientnet_b0(nn.Module):
         #   - removing default classification layer(1280->1000)
         self.features = nn.Sequential(*list(self.base_model.children())[:-1])
 
-        #   - replace it with new classifier (1280->32)
+        #   - replace it with new classifier (1280->class_count)
         b0_model_default_out_size = self.base_model.classifier.in_features
         self.classifier = nn.Linear(in_features=b0_model_default_out_size,
                                     out_features=class_count)
@@ -160,10 +149,27 @@ class CardClassifierModel_Efficientnet_b0(nn.Module):
 # training the model
 ################################################################
 def train(args):
+    # get count of outputs
+    class_count = len(ImageFolder(args.train_dir).class_to_idx.items())
+    print(f"Train dataset has {class_count} classes.")
+    
+    # select transform and class count
+    if (len(class_count) == 32):
+        classes = 32
+        training_transform = transform_base
+        print("Loading basic images transform")
+    elif (len(class_count) == 53):
+        classes = 53
+        training_transform = transform_kaggle_cards
+        print("Loading basic kaggle images' transform")
+    else: 
+        print("Unknown dataset. Exiting.")
+        exit(1)
+
     # datasets
-    train_dataset = CardDataset(images_dir=args.train_dir)
-    valid_dataset = CardDataset(images_dir=args.validation_dir)
-    test_dataset  = CardDataset(images_dir=args.test_dir)
+    train_dataset = CardDataset(images_dir=args.train_dir, transform=training_transform)
+    valid_dataset = CardDataset(images_dir=args.validation_dir, transform=transform_base)
+    test_dataset  = CardDataset(images_dir=args.test_dir, transform=transform_base)
     
     # dataloaders
     batch = 64
@@ -176,14 +182,18 @@ def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Device: ", device)
         
-    # model
-    #model = CardClassifierModel_A()
-    model = CardClassifierModel_B()
-    #model = CardClassifierModel_Efficientnet_b0()
+    # select model
+    if (args.model == 'A'):
+        print("Using Model A")
+        model = CardClassifierModel_A(class_count=classes)
+    elif (args.model == 'B'):
+        print("Using Model B")
+        model = CardClassifierModel_B(class_count=classes)
+    elif (args.model == 'C'):
+        print("Using Model C")
+        model = CardClassifierModel_Efficientnet_b0(class_count=classes)
+        
     model.to(device)
-    
-    # print model
-    #print(model)
     
     # loss function
     criterion = nn.CrossEntropyLoss()
@@ -196,7 +206,7 @@ def train(args):
     # training loop
     ################################################################
     print("Starting training")
-    epochs = 10
+    epochs = 20
     patience = 2
     best_val_loss = float('inf')
     worse = 0
@@ -214,7 +224,6 @@ def train(args):
             print(f"Epoch {epoch + 1}/{epochs}, Batch {batch_idx + 1}/{len(train_dataloader)}")
 
             optimizer.zero_grad()
-            # Training w nn.CrossEntropyLoss ---> no softmax 
             outputs = model(images)
             loss = criterion(outputs, labels)
             loss.backward()
